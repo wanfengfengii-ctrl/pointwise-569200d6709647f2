@@ -5,6 +5,7 @@ from dataclasses import dataclass
 
 from archive.commit import ArchiveStore, IssuedReport
 from archive.receipts import IssueReceipt
+from archive.retest import load_retest_report
 from plans.assignments import RollAssignment
 from plans.revisions import check_identifier, revision_from_payload
 from plans.thresholds import decode_rational
@@ -49,3 +50,21 @@ def read_report(archive: ArchiveStore, report_id: str) -> ReportLookup:
         raise ValueError('archived report has no matching receipt')
     receipt = IssueReceipt(receipt_id, receipt_report_id)
     return ReportLookup(report_id, IssuedReport(report_id, _decode_result(body), receipt))
+
+
+@dataclass(frozen=True)
+class RetestLookup:
+    requested_id: str
+    report: object | None
+
+    @property
+    def found(self) -> bool:
+        return self.report is not None
+
+
+def read_retest(archive: ArchiveStore, report_id: str) -> RetestLookup:
+    check_identifier(report_id, 'report ID')
+    report = load_retest_report(archive, report_id)
+    if report is None:
+        return RetestLookup(report_id, None)
+    return RetestLookup(report_id, report)

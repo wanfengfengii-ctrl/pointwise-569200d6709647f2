@@ -28,7 +28,9 @@ def rows_for(assignment, pairs):
 
 
 def record_count(path, table):
-    if table not in {'plan_revisions', 'roll_assignments', 'recordings', 'published_segments', 'reports', 'receipts'}:
+    if table not in {'plan_revisions', 'roll_assignments', 'recordings', 'published_segments',
+                     'published_retests', 'reports', 'receipts', 'retest_reports',
+                     'retest_receipts'}:
         raise ValueError(table)
     with closing(sqlite3.connect(path)) as db:
         return db.execute(f'SELECT count(*) FROM {table}').fetchone()[0]

@@ -33,3 +33,14 @@ python3 -B demo.py sample/roll.json
 ## 交班件格式
 
 `evidence.codec.encode_segment` 和 `decode_segment` 读写 UTF-8 JSON 固定件。版本为 `1`。`binding` 包含卷、计划、来源录制号及覆盖，`response` 包含阈值和按入量排列的 `pieces`。每一项以 `start`、`stop` 给出半开区间，告警用 `alarms` 给出，出量由 `slope * entry + intercept` 表示。斜率为 0 或 1，区间紧密覆盖 `[0,H)`，告警位于声明覆盖内。`detector.response.evaluate_response` 可用任意合法精确入量独立核对一个固定班段。报告领取直接读取已归档快照和回执。
+
+## 单拍替代复测
+
+`RETEST.md` 定义复测件与离线签发的完整契约。新增入口如下，V1 接口、交班件格式与既有回归保持不变。
+
+- `evidence.publish.publish_retest(recordings, store, recording_id, evidence_id, tick)` 从封记录制固定一个复测件，绑定卷、完整计划修订、录制号、含首尾的完整覆盖和替换原拍。`tick` 为覆盖内非布尔整数原拍，可以为首拍或尾拍。逐拍偏差留在站端。
+- `evidence.export.export_retest(store, evidence_id, destination)` 按号导出固定件并返回字节；重复导出得到相同字节。复测件为版本 `2`、`kind` 为 `retest` 的独立 JSON，可与 V1 件区分并独立解析校验。
+- `reports.issue.issue_retest(archive, assignment, coverage, recording_id, tick, payload, replacement, required_alarms, forbidden_alarms, final_amount)` 核对件内绑定与固定任务一致后，精确签出全部有理可行替代区间，返回含 `report_id`、`result`、`receipt` 的记录。`result.pieces` 每段给出 `lo`、`hi`、`lo_closed`、`hi_closed`、`alarms`、`slope`、`intercept`。
+- `archive.read.read_retest(archive, report_id)` 按号返回 `requested_id`、`found` 和 `report`，重开报告库后结果一致。未知号返回未找到。
+
+`retest_examples.py` 的 `WORKED` 记录 `RETEST.md` 中六份手算结果；`demo.py` 在临时站端固定复测件、移除站端、离线签发并重开领取。

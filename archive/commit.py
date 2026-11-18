@@ -6,6 +6,7 @@ from pathlib import Path
 from uuid import uuid4
 
 from archive.receipts import IssueReceipt, check_receipt, make_receipt
+from archive.retest import create_retest_tables
 from plans.revisions import revision_payload
 from plans.thresholds import encode_rational
 from reports.compose import ReportResult
@@ -54,6 +55,7 @@ class ArchiveStore:
                     FOREIGN KEY (report_id) REFERENCES reports (report_id)
                 )
             ''')
+            create_retest_tables(db)
 
     def commit_issue(self, result: ReportResult) -> IssuedReport:
         report_id = uuid4().hex

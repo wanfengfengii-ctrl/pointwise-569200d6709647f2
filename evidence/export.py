@@ -4,6 +4,7 @@ from tempfile import NamedTemporaryFile
 from typing import TYPE_CHECKING
 
 from evidence.codec import encode_segment
+from evidence.retest_codec import encode_retest
 
 if TYPE_CHECKING:
     from evidence.publish import SegmentStore
@@ -24,5 +25,11 @@ def write_delivery(destination: Path | str, payload: bytes) -> None:
 
 def export_segment(store: 'SegmentStore', evidence_id: str, destination: Path | str) -> bytes:
     payload = encode_segment(store.get_published(evidence_id))
+    write_delivery(destination, payload)
+    return payload
+
+
+def export_retest(store: 'SegmentStore', evidence_id: str, destination: Path | str) -> bytes:
+    payload = encode_retest(store.get_retest(evidence_id))
     write_delivery(destination, payload)
     return payload
